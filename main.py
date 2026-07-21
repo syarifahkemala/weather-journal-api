@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from database import init_db, simpan_history, ambil_semua_history, ambil_history_per_kota
 from logger import tulis_log, baca_log
 
+from utils import rekomendasi_pakaian 
+
 load_dotenv()
 app = FastAPI(title="Weather Journal API")
 
@@ -50,14 +52,17 @@ def cek_cuaca(kota: str):
     data = response.json()
     suhu = data["main"]["temp"]
     kondisi = data["weather"][0]["description"]
+    saran = rekomendasi_pakaian(suhu)   # ← panggil fungsinya di sini
 
-    # Simpan ke SQLite
     simpan_history(kota, suhu, kondisi)
-
-    # Tulis ke file log
     tulis_log(f"Cek cuaca {kota}: {suhu}°C, {kondisi}")
 
-    return {"kota": kota, "suhu": suhu, "kondisi": kondisi}
+    return {
+        "kota": kota,
+        "suhu": suhu,
+        "kondisi": kondisi,
+        "rekomendasi": saran   # ← tambahkan ke response
+    }
 
 
 @app.get("/history")
